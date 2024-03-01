@@ -1,0 +1,187 @@
+local usersWithCrown = {
+    ["bemeyasha"] = true,
+    ["Player2"] = true,
+}
+
+local player1 = game.Players[originalHost]
+local player2 = game.Players[altUsername]
+
+local spamming = false
+local spamText = ""
+local LowGFX = false  -- Set to true to enable LowGFX, false otherwise
+local LowGFXScript = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/Bemey99/Low/main/GFX/Working"))()'
+
+local function sendNotification(message)
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Script Loaded";
+        Text = message;
+        Duration = 5;
+    })
+end
+
+sendNotification("Successfully Loaded!")
+
+local function isHost(player)
+    return player and player.Name == originalHost
+end
+
+local function altSayYeahYeah()
+    game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("yeah, yeah!", "All")
+end
+
+local function changeCustomHostName(newName)
+    customHostName = newName
+    game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Custom host name changed to: " .. customHostName, "All")
+end
+
+local function testCustomName()
+    if isHost(player1) then
+        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Custom Name: " .. customHostName, "All")
+    else
+        local userDisplayName = usersWithCrown[player2.Name] and "[👑] " or ""
+        userDisplayName = userDisplayName .. player2.Name
+        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("STARS = " .. userDisplayName .. " " .. starsTag, player2.Name)
+    end
+end
+
+local function spamTextFunction()
+    spamming = true
+    while spamming do
+        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(spamText, "All")
+        wait(0.5)
+    end
+end
+
+local function stopSpam()
+    spamming = false
+end
+
+local function freezeAlt()
+    if isHost(player1) then
+        local altCharacter = player2.Character
+        if altCharacter then
+            local humanoidRootPart = altCharacter:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                humanoidRootPart.Anchored = true
+                game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Frozen!", "All")
+            end
+        end
+    end
+end
+
+local function thawAlt()
+    if isHost(player1) then
+        local altCharacter = player2.Character
+        if altCharacter then
+            local humanoidRootPart = altCharacter:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                humanoidRootPart.Anchored = false
+                game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Unfrozen!", "All")
+            end
+        end
+    end
+end
+
+local function executeHostCommands(message)
+    if isHost(player1) then
+        if message == "/e test" then
+            altSayYeahYeah()
+            return
+        elseif message:sub(1, 6) == "!Hold " then
+            local itemName = message:sub(7)
+            local altInventory = player2.Backpack
+
+            for _, item in pairs(altInventory:GetChildren()) do
+                if item.Name == itemName then
+                    player2.Backpack:FindFirstChild(itemName).Parent = player2.Character
+                    game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Equipped " .. itemName .. "!", "All")
+                    break
+                end
+            end
+        elseif message == "!bring" then
+            player2.Character:SetPrimaryPartCFrame(player1.Character.HumanoidRootPart.CFrame)
+            game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Teleported!", "All")
+        elseif message == "!Hide" then
+            player2.Character:SetPrimaryPartCFrame(player2.Character.HumanoidRootPart.CFrame + Vector3.new(0, 100000000, 0))
+            game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Vanished!", "All")
+        elseif message == "!Unhide" then
+            player2.Character:SetPrimaryPartCFrame(player1.Character.HumanoidRootPart.CFrame)
+            game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("I'm Back, " .. customHostName .. "!", "All")
+        elseif message:sub(1, 5) == "!say " then
+            local anythingToSay = message:sub(6)
+            game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(anythingToSay, "All")
+        elseif message:sub(1, 6) == "!GoTo " then
+            local playerNameToTeleport = message:sub(7)
+            local playerToTeleport = game.Players:FindFirstChild(playerNameToTeleport)
+
+            if playerToTeleport then
+                player2.Character:SetPrimaryPartCFrame(playerToTeleport.Character.HumanoidRootPart.CFrame)
+                game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Teleported To " .. playerNameToTeleport .. "!", "All")
+            else
+                game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Player not found!", "All")
+            end
+        elseif message:sub(1, 4) == "!cn " then
+            local newName = message:sub(5)
+            changeCustomHostName(newName)
+        elseif message == "!testc" then
+            testCustomName()
+        elseif message:sub(1, 6) == "!spam " then
+            spamText = message:sub(7)
+            spawn(spamTextFunction)
+        elseif message == "!unspam" then
+            stopSpam()
+        elseif message == "!freeze" then
+            freezeAlt()
+        elseif message == "!thaw" then
+            thawAlt()
+        elseif message == "!leave" then
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Bemey99/Leave/main/Game"))()
+        elseif message:sub(1, 12) == "!ban ." then
+            if player2 then
+                player2:Kick("PERMA-BANNED")
+                player2.DisplayName = altNewName
+            else
+                game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("ALT player not found!", "All")
+            end
+        elseif message == "!lowgfx" then
+            if not LowGFX then
+                loadstring(LowGFXScript)()
+                LowGFX = true  -- Set LowGFX to true after enabling
+                game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("LowGFX Enabled!", "All")
+            else
+                game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("LowGFX is already enabled.", "All")
+            end
+        elseif message == "!nolowgfx" then
+            -- Add code to disable LowGFX if needed
+        elseif message == "!AutoStomp" then
+            autoStompAlt()
+        end
+    else
+        game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Owner Not Found!", "All")
+    end
+    -- Add ALT-specific commands here if needed
+end
+
+-- Connect Chatted event for both players
+player1.Chatted:Connect(executeHostCommands)
+
+player2.Chatted:Connect(function(message)
+    -- Add ALT-specific commands here if needed
+end)
+
+wait(0.0002)
+local NotifyLibrary = loadstring(game:HttpGet("https://pastebin.com/raw/7iKVGcyn"))()
+getgenv().ScriptName = "Jupiter Universal Alt Control"
+local ScriptName = getgenv().ScriptName
+local Notify = NotifyLibrary.Notify
+ 
+Notify({Title = "Successfully Loaded Jupiter Control!", Duration = 100000000000})
+Notify({Title = "Jupiter Universal Alt Control Script V1.1", Duration = 1000000000000})
+Notify({Title = "Made By jdjcxbdnfnfn on discord", Duration = 1000000000000})
+Notify({Title = "!ban . fixed negars", Duration = 10})
+Notify({Title = "New Cmds Every Week!", Duration = 10})
+Notify({Title = "!spam Added Back in V1.1", Duration = 10})
+Notify({Title = "!exec . removed in V1.1 cuz nothing", Duration = 10})
+Notify({Title = "!Cheeseball removed in V1.1", Duration = 10})
+Notify({Title = "If Universal Control crashed lots pls report", Duration = 10})
+Notify({Title = "!thaw, !freeze, !lowgfx, !leave, !AutoStomp. added in V1.1", Duration = 10})
