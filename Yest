@@ -28,18 +28,19 @@ function CreateEsp(Player)
                 Box.Position = Vector2.new(Target2dPosition.X - Box.Size.X / 2,Target2dPosition.Y - Box.Size.Y / 2)
                 Box.Thickness = 1
                 Box.ZIndex = 69
-                if Config.Box then
+                -- Update the following line inside the CreateEsp function
+if Config.Box then
     Box.Visible = IsVisible
-    Box.Color = Color3.fromHSV(tick() % 5 / 5, 1, 1) -- Rainbow effect
+    Box.Color = Config.BoxColor
     Box.Size = Vector2.new(width, height)
     Box.Position = Vector2.new(Target2dPosition.X - Box.Size.X / 2, Target2dPosition.Y - Box.Size.Y / 2)
-    Box.Thickness = 3 -- Set thickness for outline
-    Box.Filled = false -- Set to false to make it only an outline
+    Box.Thickness = 1
     Box.ZIndex = 69
+    Box.Transparency = 0.5 -- Set transparency for the box
 
     if Config.BoxOutline then
         BoxOutline.Visible = IsVisible
-        BoxOutline.Color = Config.BoxOutlineColor
+        BoxOutline.Color = Color3.fromHSV(tick() % 5 / 5, 1, 1) -- Rainbow outline
         BoxOutline.Size = Vector2.new(width, height)
         BoxOutline.Position = Vector2.new(Target2dPosition.X - Box.Size.X / 2, Target2dPosition.Y - Box.Size.Y / 2)
         BoxOutline.Thickness = 3
@@ -47,6 +48,10 @@ function CreateEsp(Player)
     else
         BoxOutline.Visible = false
     end
+else
+    Box.Visible = false
+    BoxOutline.Visible = false
+end
 else
     Box.Visible = false
     BoxOutline.Visible = false
